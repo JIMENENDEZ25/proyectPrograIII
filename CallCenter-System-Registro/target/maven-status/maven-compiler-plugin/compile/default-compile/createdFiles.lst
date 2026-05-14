@@ -1,0 +1,6 @@
+com/umg/callcenter/registro/main/MainRegistro.class
+com/umg/callcenter/registro/controller/RegistroController.class
+com/umg/callcenter/registro/modelo/Cliente.class
+com/umg/callcenter/registro/conexion/ConexionServidor.class
+com/umg/callcenter/registro/ui/ui.class
+com/umg/callcenter/registro/ui/ui$1.class

@@ -1,0 +1,14 @@
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/controller/CentralServerController.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/main/MainServer.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/server/PersistenciaWorker.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/conexion/Conexion.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/protocol/Comando.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/persistence/PersistenciaAtenciones.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/persistence/PersistenciaClientes.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/model/Cliente.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/model/Atencion.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/server/ServidorCentral.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/queue/GestorColas.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/persistence/HashTableAtenciones.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/ui/CentralServerUI.java
+/home/mk/Desktop/CallCenter-System/CallCenter-System-Server/src/main/java/com/umg/callcenter/system/server/ClienteHandler.java

@@ -1,0 +1,29 @@
+[
+  {
+    "numeroTicket": "TKT-1778734615690-8965",
+    "dpi": "1234569878965",
+    "fechaHora": "2026-05-14 01:02:31",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 15,
+    "usuarioAgente": "x",
+    "tipoAtencion": "normal"
+  },
+  {
+    "numeroTicket": "TKT-1778735909041-7806",
+    "dpi": "1023036547806",
+    "fechaHora": "2026-05-14 01:55:00",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 150,
+    "usuarioAgente": "asd",
+    "tipoAtencion": "normal"
+  },
+  {
+    "numeroTicket": "TKT-1778734804095-8374",
+    "dpi": "2716384928374",
+    "fechaHora": "2026-05-14 01:59:41",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 15,
+    "usuarioAgente": "asdasdasd",
+    "tipoAtencion": "premium"
+  }
+]
