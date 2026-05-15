@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.premium.conexion;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.google.gson.Gson;
@@ -55,6 +55,8 @@ public class ConexionServidor {
             } catch (Exception e) {}
         }
     }
+    
+    
     
     private void iniciarReceptor() {
         if (receptorThread != null && receptorThread.isAlive()) return;
@@ -166,6 +168,23 @@ public class ConexionServidor {
             salida.flush();
         } catch (IOException e) {
             System.err.println("[CONEXION] Error enviando: " + e.getMessage());
+            conectado = false;
+        }
+    }
+    // Agrega este método después de enviarComando()
+
+    public void enviarComandoAsync(JsonObject comando) {
+        if (!conectado) {
+            return;
+        }
+
+        try {
+            String jsonStr = gson.toJson(comando);
+            System.out.println("[CONEXION] Enviando async: " + jsonStr);
+            salida.writeUTF(jsonStr);
+            salida.flush();
+        } catch (IOException e) {
+            System.err.println("[CONEXION] Error enviando async: " + e.getMessage());
             conectado = false;
         }
     }

@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.normal.conexion;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.google.gson.Gson;
@@ -169,7 +169,21 @@ public class ConexionServidor {
             conectado = false;
         }
     }
-    
+    public void enviarComandoAsync(JsonObject comando) {
+        if (!conectado) {
+            return;
+        }
+
+        try {
+            String jsonStr = gson.toJson(comando);
+            System.out.println("[CONEXION] Enviando async: " + jsonStr);
+            salida.writeUTF(jsonStr);
+            salida.flush();
+        } catch (IOException e) {
+            System.err.println("[CONEXION] Error enviando async: " + e.getMessage());
+            conectado = false;
+        }
+    }
     public void desconectar() {
         conectado = false;
         if (receptorThread != null) {

@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import javax.swing.SwingUtilities;

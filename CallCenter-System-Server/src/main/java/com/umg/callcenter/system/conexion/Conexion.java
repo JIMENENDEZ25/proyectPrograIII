@@ -6,7 +6,7 @@ package com.umg.callcenter.system.conexion;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 import java.io.DataOutputStream;
 import java.io.IOException;

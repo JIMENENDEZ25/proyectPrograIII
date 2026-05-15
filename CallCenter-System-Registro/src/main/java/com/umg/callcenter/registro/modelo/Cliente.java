@@ -6,7 +6,7 @@ package com.umg.callcenter.registro.modelo;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.google.gson.JsonObject;

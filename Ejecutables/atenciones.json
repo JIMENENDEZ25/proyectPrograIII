@@ -1,0 +1,73 @@
+[
+  {
+    "numeroTicket": "TKT-1778734615690-8965",
+    "dpi": "1234569878965",
+    "fechaHora": "2026-05-14 01:02:31",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 15,
+    "usuarioAgente": "x",
+    "tipoAtencion": "normal"
+  },
+  {
+    "numeroTicket": "TKT-1778735909041-7806",
+    "dpi": "1023036547806",
+    "fechaHora": "2026-05-14 01:55:00",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 150,
+    "usuarioAgente": "asd",
+    "tipoAtencion": "normal"
+  },
+  {
+    "numeroTicket": "TKT-1778734804095-8374",
+    "dpi": "2716384928374",
+    "fechaHora": "2026-05-14 01:59:41",
+    "motivo": "asdasdasd",
+    "duracionMinutos": 15,
+    "usuarioAgente": "asdasdasd",
+    "tipoAtencion": "premium"
+  }
+]{
+  "numeroTicket": "TKT-1778736136286-7800",
+  "dpi": "1023236547800",
+  "fechaHora": "2026-05-14 17:13:57",
+  "motivo": "reparaciones",
+  "duracionMinutos": 150,
+  "usuarioAgente": "x",
+  "tipoAtencion": "normal"
+}
+{
+  "numeroTicket": "TKT-1778734862690-1230",
+  "dpi": "1457896451230",
+  "fechaHora": "2026-05-14 17:15:03",
+  "motivo": "reparaciones",
+  "duracionMinutos": 150,
+  "usuarioAgente": "x",
+  "tipoAtencion": "normal"
+}
+{
+  "numeroTicket": "TKT-1778736223049-7800",
+  "dpi": "1023230547800",
+  "fechaHora": "2026-05-14 18:26:27",
+  "motivo": "Servicio mensual",
+  "duracionMinutos": 240,
+  "usuarioAgente": "jime",
+  "tipoAtencion": "normal"
+}
+{
+  "numeroTicket": "TKT-1778805882404-3012",
+  "dpi": "1204579863012",
+  "fechaHora": "2026-05-14 18:55:01",
+  "motivo": "Servicio de cable",
+  "duracionMinutos": 150,
+  "usuarioAgente": "olga",
+  "tipoAtencion": "normal"
+}
+{
+  "numeroTicket": "TKT-1778806213710-2002",
+  "dpi": "4125796632002",
+  "fechaHora": "2026-05-14 19:21:33",
+  "motivo": "actualizacion",
+  "duracionMinutos": 150,
+  "usuarioAgente": "cd",
+  "tipoAtencion": "normal"
+}

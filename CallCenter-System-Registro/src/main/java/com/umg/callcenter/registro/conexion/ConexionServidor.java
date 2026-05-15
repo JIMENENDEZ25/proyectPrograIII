@@ -6,7 +6,7 @@ package com.umg.callcenter.registro.conexion;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.google.gson.Gson;
@@ -52,6 +52,24 @@ public class ConexionServidor {
     }
 
     private void notificarListeners(String mensaje) {
+        // Intentar asociar respuesta con un comando pendiente
+        try {
+            JsonObject json = gson.fromJson(mensaje, JsonObject.class);
+
+            // Verificar si la respuesta tiene requestId
+            if (json.has("requestId")) {
+                String id = json.get("requestId").getAsString();
+                BlockingQueue<String> cola = respuestasComando.get(id);
+                if (cola != null) {
+                    cola.offer(mensaje);
+                    return; // No notificar a listeners generales
+                }
+            }
+        } catch (Exception e) {
+            // No es JSON o no tiene requestId
+        }
+
+        // Notificar a listeners generales
         for (Consumer<String> listener : listeners) {
             try {
                 listener.accept(mensaje);
@@ -195,6 +213,8 @@ public class ConexionServidor {
         }
 
         String id = java.util.UUID.randomUUID().toString();
+        comando.addProperty("requestId", id);  // ← AGREGAR ID al comando
+
         BlockingQueue<String> cola = new LinkedBlockingQueue<>();
         respuestasComando.put(id, cola);
 
@@ -205,9 +225,7 @@ public class ConexionServidor {
             salida.writeUTF(jsonStr);
             salida.flush();
 
-            System.out.println("[CONEXION] Esperando respuesta para comando..."); // ← AGREGAR
             String respuesta = cola.poll(10, TimeUnit.SECONDS);
-            System.out.println("[CONEXION] Respuesta recibida en cola: " + respuesta); // ← AGREGAR
             return respuesta != null ? respuesta : "ERROR|Timeout";
 
         } catch (Exception e) {
@@ -217,9 +235,10 @@ public class ConexionServidor {
         }
     }
     
-    // ← NUEVO MÉTODO - Agregar después de enviarComando()
     public void enviarComandoAsync(JsonObject comando) {
-        if (!conectado) return;
+        if (!conectado) {
+            return;
+        }
 
         try {
             String jsonStr = gson.toJson(comando);
@@ -228,6 +247,7 @@ public class ConexionServidor {
             salida.flush();
         } catch (IOException e) {
             System.err.println("[CONEXION] Error enviando async: " + e.getMessage());
+            conectado = false;
         }
     }
     

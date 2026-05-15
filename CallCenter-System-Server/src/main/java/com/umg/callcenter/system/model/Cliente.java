@@ -6,12 +6,13 @@ package com.umg.callcenter.system.model;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 public class Cliente implements Comparable<Cliente> {
 
@@ -29,6 +30,10 @@ public class Cliente implements Comparable<Cliente> {
     private String origen;
     private EstadoCliente estado;  // ← NUEVO
     private LocalDateTime fechaAtencion;  // ← NUEVO (cuándo fue atendido)
+    
+    @SerializedName("horaIngresoStr")
+    private String horaIngresoStr;
+
 
     public Cliente(String dpi, String nombre, String apellido, String tipo) {
         this.dpi = dpi;
@@ -36,30 +41,36 @@ public class Cliente implements Comparable<Cliente> {
         this.apellido = apellido;
         this.tipo = tipo.toLowerCase();
         this.horaIngreso = LocalDateTime.now();
+        this.horaIngresoStr = getHoraIngresoFormateada();  // ← Guardar como String
         this.numeroTicket = generarTicket();
         this.origen = "registro";
-        this.estado = EstadoCliente.PENDIENTE;  // ← NUEVO
+        this.estado = EstadoCliente.PENDIENTE;
         this.fechaAtencion = null;
     }
 
-    public EstadoCliente getEstado() { return estado; }
-    
-    public void setEstado(EstadoCliente estado) { this.estado = estado; }
-    
-    public LocalDateTime getFechaAtencion() { return fechaAtencion; }
-   
-    public void setFechaAtencion(LocalDateTime fechaAtencion) { this.fechaAtencion = fechaAtencion; }
-    
+    public EstadoCliente getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoCliente estado) {
+        this.estado = estado;
+    }
+
+    public LocalDateTime getFechaAtencion() {
+        return fechaAtencion;
+    }
+
+    public void setFechaAtencion(LocalDateTime fechaAtencion) {
+        this.fechaAtencion = fechaAtencion;
+    }
+
     private String generarTicket() {
-
         String sufijo;
-
         if (dpi.length() >= 4) {
             sufijo = dpi.substring(dpi.length() - 4);
         } else {
             sufijo = String.format("%4s", dpi).replace(' ', '0');
         }
-
         return "TKT-" + System.currentTimeMillis() + "-" + sufijo;
     }
 
@@ -84,14 +95,18 @@ public class Cliente implements Comparable<Cliente> {
     }
 
     public LocalDateTime getHoraIngreso() {
+        if (horaIngreso == null && horaIngresoStr != null) {
+            horaIngreso = LocalDateTime.parse(horaIngresoStr,
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        }
         return horaIngreso;
     }
 
     public String getHoraIngresoFormateada() {
-
-        return horaIngreso.format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        );
+        if (horaIngreso == null && horaIngresoStr != null) {
+            return horaIngresoStr;
+        }
+        return horaIngreso.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     public String getOrigen() {
@@ -112,19 +127,17 @@ public class Cliente implements Comparable<Cliente> {
 
     @Override
     public int compareTo(Cliente otro) {
-        // Premium tiene prioridad (0 = mayor prioridad, 1 = menor)
         int prioridadEste = this.tipo.equals("premium") ? 0 : 1;
         int prioridadOtro = otro.tipo.equals("premium") ? 0 : 1;
-        
+
         if (prioridadEste != prioridadOtro) {
             return Integer.compare(prioridadEste, prioridadOtro);
         }
-        return this.horaIngreso.compareTo(otro.horaIngreso);
+        return this.getHoraIngreso().compareTo(otro.getHoraIngreso());
     }
 
     @Override
     public String toString() {
-
         return "Ticket: " + numeroTicket
                 + " | "
                 + nombre + " " + apellido
@@ -132,7 +145,6 @@ public class Cliente implements Comparable<Cliente> {
     }
 
     public String toCSV() {
-
         return numeroTicket + ","
                 + dpi + ","
                 + nombre + ","
@@ -140,12 +152,11 @@ public class Cliente implements Comparable<Cliente> {
                 + tipo + ","
                 + getHoraIngresoFormateada();
     }
-    
+
     public boolean estaPendiente() {
         return estado == EstadoCliente.PENDIENTE;
     }
-    
-    // Para marcar como atendido
+
     public void marcarAtendido() {
         this.estado = EstadoCliente.ATENDIDO;
         this.fechaAtencion = LocalDateTime.now();

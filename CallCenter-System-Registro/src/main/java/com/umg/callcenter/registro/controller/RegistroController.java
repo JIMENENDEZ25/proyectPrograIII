@@ -6,7 +6,7 @@ package com.umg.callcenter.registro.controller;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.registro.conexion.ConexionServidor;
@@ -45,6 +45,7 @@ public class RegistroController {
     private Queue<String> mensajesPendientes = new LinkedList<>();
     private int reconnectAttempts = 0;
     private static final int MAX_RECONNECT_ATTEMPTS = 5;
+    private java.util.function.Consumer<String> onError;
     
     public RegistroController(String nombreOperador) {  // ← MODIFICAR CONSTRUCTOR
         this.conexion = new ConexionServidor();
@@ -167,63 +168,17 @@ public class RegistroController {
             }
             return;
         }
-        
+
         Cliente cliente = new Cliente(dpi, nombre, apellido, tipo);
         ultimoDPI = dpi;
-        
-        new Thread(() -> {
-            JsonObject comando = cliente.toJsonRegistro();
-            String respuesta = conexion.enviarComando(comando);
-            
-            SwingUtilities.invokeLater(() -> {
-                if (respuesta == null || respuesta.startsWith("ERROR")) {
-                    String error = respuesta != null ? respuesta : "Error desconocido";
-                    if (onMostrarError != null) {
-                        onMostrarError.accept("Error del servidor: " + error);
-                    }
-                    return;
-                }
-                
-                try {
-                    JsonObject respuestaJson = gson.fromJson(respuesta, JsonObject.class);
-                    String estado = respuestaJson.get("estado").getAsString();
-                    
-                    if (estado.equals("TICKET_GENERADO")) {
-                        ultimoTicket = respuestaJson.get("ticket").getAsString();
-                        cliente.setNumeroTicket(ultimoTicket);
-                        
-                        // Construir mensaje de éxito
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("========================================\n");
-                        sb.append("     CLIENTE REGISTRADO EXITOSAMENTE\n");
-                        sb.append("========================================\n");
-                        sb.append("Ticket: ").append(ultimoTicket).append("\n");
-                        sb.append("DPI:    ").append(dpi).append("\n");
-                        sb.append("Nombre: ").append(nombre).append(" ").append(apellido).append("\n");
-                        sb.append("Tipo:   ").append(tipo.toUpperCase()).append("\n");
-                        sb.append("Hora:   ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n");
-                        sb.append("Estado: 🟡 PENDIENTE\n");
-                        sb.append("========================================");
-                        
-                        if (onMostrarExito != null) {
-                            onMostrarExito.accept(sb.toString());
-                        }
-                        log("Nuevo cliente registrado: " + ultimoTicket);
-                    } else {
-                        String mensaje = respuestaJson.has("mensaje") 
-                            ? respuestaJson.get("mensaje").getAsString() 
-                            : "Error desconocido";
-                        if (onMostrarError != null) {
-                            onMostrarError.accept(mensaje);
-                        }
-                    }
-                } catch (Exception e) {
-                    if (onMostrarError != null) {
-                        onMostrarError.accept("Error procesando respuesta: " + e.getMessage());
-                    }
-                }
-            });
-        }).start();
+
+        JsonObject comando = cliente.toJsonRegistro();
+
+        // Usar ASYNC en lugar de enviarComando
+        conexion.enviarComandoAsync(comando);
+
+        // Mostrar mensaje de que se envió
+        agregarLog("📤 Enviando registro para " + nombre + " " + apellido);
     }
     
     public void desconectar() {
@@ -274,40 +229,64 @@ public class RegistroController {
     }
 
     public void iniciarReceptorChat() {
-        System.out.println("[DEBUG] Iniciando receptor de chat"); // ← AGREGAR
+        System.out.println("[DEBUG] Iniciando receptor de chat");
         conexion.addListener(respuesta -> {
-            System.out.println("[DEBUG] Respuesta recibida: " + respuesta); // ← AGREGAR
+            System.out.println("[DEBUG] Respuesta recibida: " + respuesta);
             try {
                 JsonObject json = gson.fromJson(respuesta, JsonObject.class);
                 String estado = json.get("estado").getAsString();
 
-                if (estado.equals("NUEVO_MENSAJE_CHAT")) {
-                    String emisor = json.get("emisor").getAsString();
-                    String mensaje = json.get("mensaje").getAsString();
-                    String hora = json.get("hora").getAsString();
-                    if (onMensajeChat != null) {
-                        SwingUtilities.invokeLater(() -> 
-                            onMensajeChat.accept("[" + hora + "] " + emisor + ": " + mensaje)
-                        );
-                    }
-                } else if (estado.equals("ACTUALIZAR_USUARIOS_CHAT")) {
-                    if (onActualizarUsuariosChat != null) {
-                        SwingUtilities.invokeLater(() -> 
-                            onActualizarUsuariosChat.accept(json.get("usuarios").getAsJsonArray())
-                        );
-                    }
-                } else if (estado.equals("LISTA_USUARIOS_CHAT")) {
-                    System.out.println("[DEBUG] Procesando LISTA_USUARIOS_CHAT"); // ← AGREGAR
-                    if (onActualizarUsuariosChat != null) {
-                        com.google.gson.JsonArray usuarios = json.get("usuarios").getAsJsonArray();
-                        System.out.println("[DEBUG] Llamando callback con " + usuarios.size() + " usuarios");
-                        SwingUtilities.invokeLater(() -> onActualizarUsuariosChat.accept(usuarios));
-                    } else {
-                        System.err.println("[DEBUG] onActualizarUsuariosChat es NULL");
-                    }
+                switch (estado) {
+                    case "NUEVO_MENSAJE_CHAT":
+                        String emisor = json.get("emisor").getAsString();
+                        String mensaje = json.get("mensaje").getAsString();
+                        String hora = json.get("hora").getAsString();
+                        if (onMensajeChat != null) {
+                            SwingUtilities.invokeLater(()
+                                    -> onMensajeChat.accept("[" + hora + "] " + emisor + ": " + mensaje)
+                            );
+                        }
+                        break;
+
+                    case "ACTUALIZAR_USUARIOS_CHAT":
+                    case "LISTA_USUARIOS_CHAT":
+                        if (onActualizarUsuariosChat != null) {
+                            SwingUtilities.invokeLater(()
+                                    -> onActualizarUsuariosChat.accept(json.get("usuarios").getAsJsonArray())
+                            );
+                        }
+                        break;
+
+                    case "IDENTIFICADO":
+                        log("✅ " + json.get("mensaje").getAsString());
+                        break;
+
+                    // ========== AGREGAR ESTE CASE ==========
+                    case "TICKET_GENERADO":
+                        String ticket = json.get("ticket").getAsString();
+                        String horaIngreso = json.get("horaIngreso").getAsString();
+                        String mensajeExito = String.format(
+                                "✅ Cliente registrado exitosamente!\n\nTicket: %s\nHora: %s",
+                                ticket, horaIngreso);
+                        if (onMostrarExito != null) {
+                            onMostrarExito.accept(mensajeExito);
+                        }
+                        agregarLog(mensajeExito);
+                        break;
+                    // =====================================
+
+                    case "ERROR":
+                        if (onError != null) {
+                            String errorMsg = json.has("mensaje") ? json.get("mensaje").getAsString() : "Error desconocido";
+                            onError.accept(errorMsg);
+                        }
+                        break;
+
+                    default:
+                        System.out.println("[DEBUG] Estado no manejado: " + estado);
                 }
             } catch (Exception e) {
-                // No es un mensaje de chat, ignorar
+                System.err.println("[DEBUG] Error parseando: " + e.getMessage());
             }
         });
     }
@@ -316,6 +295,13 @@ public class RegistroController {
         this.onMensajeChat = callback;
     }
 
+    private void agregarLog(String mensaje) {
+        if (onLog != null) {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            onLog.accept("[" + timestamp + "] " + mensaje);
+        }
+    }
+    
     public void setOnActualizarUsuariosChat(java.util.function.Consumer<com.google.gson.JsonArray> callback) {
         this.onActualizarUsuariosChat = callback;
     }

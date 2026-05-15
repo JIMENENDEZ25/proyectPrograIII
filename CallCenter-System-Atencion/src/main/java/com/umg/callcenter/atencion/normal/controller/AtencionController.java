@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.normal.controller;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.atencion.normal.conexion.ConexionServidor;
@@ -31,6 +31,7 @@ public class AtencionController {
     // Callbacks para la UI
     private Runnable onConectar;
     private Runnable onDesconectar;
+    private Runnable onAtencionRegistrada;
     private java.util.function.Consumer<JsonObject> onClienteAsignado;
     private Runnable onClienteFinalizado;
     private Runnable onErrorConexion;
@@ -55,7 +56,9 @@ public class AtencionController {
     }
     
     // ========== CONFIGURACIÓN DE CALLBACKS ==========
-    
+    public void setOnAtencionRegistrada(Runnable callback) {
+        this.onAtencionRegistrada = callback;
+    }
     public void setOnConectar(Runnable callback) { this.onConectar = callback; }
     public void setOnDesconectar(Runnable callback) { this.onDesconectar = callback; }
     public void setOnClienteAsignado(java.util.function.Consumer<JsonObject> callback) {
@@ -188,11 +191,8 @@ public class AtencionController {
     }
     
     public void finalizarAtencion(String motivo, int duracion) {
-        System.out.println("[CONTROLLER] finalizarAtencion() llamado");
-        System.out.println("[CONTROLLER] clienteActual: " + (clienteActual != null ? clienteActual.getTicket() : "null"));
-
         if (clienteActual == null) {
-            System.out.println("[CONTROLLER] ERROR: clienteActual es null");
+            log("❌ No hay cliente actual para finalizar");
             return;
         }
 
@@ -205,11 +205,8 @@ public class AtencionController {
         finalizacion.addProperty("agente", nombreAgente);
         finalizacion.addProperty("tipoAtencion", tipoAgente);
 
-        System.out.println("[CONTROLLER] Enviando FINALIZAR_ATENCION: " + finalizacion.toString());
-        conexion.enviarComando(finalizacion);
-
-        // 🔥 LIMPIAR DESPUÉS DE ENVIAR
-        this.clienteActual = null;
+        conexion.enviarComandoAsync(finalizacion);
+        log("📤 Enviando finalización para " + clienteActual.getTicket());
     }
 
     public void cambiarIpServidor(String nuevaIp) {
@@ -291,7 +288,13 @@ public class AtencionController {
                             SwingUtilities.invokeLater(() -> onActualizarContadores.accept(normal, premium));
                         }
                         break;
-
+                    case "ATENCION_REGISTRADA":
+                        log("✅ " + json.get("mensaje").getAsString());
+                        this.clienteActual = null;
+                        if (onAtencionRegistrada != null) {
+                            SwingUtilities.invokeLater(() -> onAtencionRegistrada.run());
+                        }
+                        break;
                     case "ERROR":
                         if (onError != null) {
                             String errorMsg = json.has("mensaje") ? json.get("mensaje").getAsString() : "Error desconocido";

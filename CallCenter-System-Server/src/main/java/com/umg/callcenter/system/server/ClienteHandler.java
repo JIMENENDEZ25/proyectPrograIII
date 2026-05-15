@@ -6,7 +6,7 @@ package com.umg.callcenter.system.server;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.system.model.Atencion;
@@ -15,6 +15,7 @@ import com.umg.callcenter.system.controller.CentralServerController;
 import com.umg.callcenter.system.persistence.HashTableAtenciones;
 import com.umg.callcenter.system.protocol.Comando;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.umg.callcenter.system.persistence.PersistenciaClientes;
 import com.umg.callcenter.system.queue.GestorColas;
@@ -40,7 +41,10 @@ public class ClienteHandler implements Runnable {
     private final HashTableAtenciones tablaHash;
     private final ServidorCentral servidor;
     private final CentralServerUI ui;
-    private final Gson gson;
+    private static final Gson gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .setPrettyPrinting()
+            .create();
     private String tipoCliente;
     private DataOutputStream salida;
     private DataInputStream entrada;
@@ -64,7 +68,6 @@ public class ClienteHandler implements Runnable {
         this.tablaHash = tablaHash;
         this.servidor = servidor;
         this.ui = ui;
-        this.gson = new Gson();
         
         try {
             socket.setSoTimeout(300000);
@@ -178,6 +181,7 @@ public class ClienteHandler implements Runnable {
             case CAMBIAR_MODO:
                 cambiarModo(json);
                 break;
+            
             default:
                 enviarRespuesta("ERROR", "Comando no implementado: " + comando);
         }

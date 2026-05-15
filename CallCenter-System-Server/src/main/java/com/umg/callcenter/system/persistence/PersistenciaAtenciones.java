@@ -6,7 +6,7 @@ package com.umg.callcenter.system.persistence;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.system.model.Atencion;
@@ -24,7 +24,22 @@ import java.time.format.DateTimeFormatter;
 public class PersistenciaAtenciones {
     
     private static final String ARCHIVO = "atenciones.json";
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    
+    private static final Gson gson = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeAdapter(LocalDateTime.class, new com.google.gson.JsonSerializer<LocalDateTime>() {
+            @Override
+            public com.google.gson.JsonElement serialize(LocalDateTime src, java.lang.reflect.Type typeOfSrc, com.google.gson.JsonSerializationContext context) {
+                return new com.google.gson.JsonPrimitive(src.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            }
+        })
+        .registerTypeAdapter(LocalDateTime.class, new com.google.gson.JsonDeserializer<LocalDateTime>() {
+            @Override
+            public LocalDateTime deserialize(com.google.gson.JsonElement json, java.lang.reflect.Type typeOfT, com.google.gson.JsonDeserializationContext context) throws com.google.gson.JsonParseException {
+                return LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+        })
+        .create();
 
     public static synchronized void guardar(Atencion a) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(ARCHIVO, true))) {

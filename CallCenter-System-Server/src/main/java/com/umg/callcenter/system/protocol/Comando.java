@@ -6,7 +6,7 @@ package com.umg.callcenter.system.protocol;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 public enum Comando {
     REGISTRAR,

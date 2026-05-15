@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.premium.modelo;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import java.time.LocalDateTime;

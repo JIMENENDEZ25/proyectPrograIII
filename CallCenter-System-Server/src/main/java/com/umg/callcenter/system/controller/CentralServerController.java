@@ -6,7 +6,7 @@ package com.umg.callcenter.system.controller;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.system.model.Cliente;

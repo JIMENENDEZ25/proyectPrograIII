@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.normal.main;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.atencion.normal.ui.ui;

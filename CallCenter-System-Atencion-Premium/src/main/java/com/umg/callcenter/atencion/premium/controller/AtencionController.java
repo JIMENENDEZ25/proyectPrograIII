@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.premium.controller;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.atencion.premium.conexion.ConexionServidor;
@@ -31,6 +31,7 @@ public class AtencionController {
     // Callbacks para la UI
     private Runnable onConectar;
     private Runnable onDesconectar;
+    private Runnable onAtencionRegistrada;
     private java.util.function.Consumer<JsonObject> onClienteAsignado;
     private Runnable onClienteFinalizado;
     private Runnable onErrorConexion;
@@ -55,7 +56,9 @@ public class AtencionController {
     }
     
     // ========== CONFIGURACIÓN DE CALLBACKS ==========
-    
+    public void setOnAtencionRegistrada(Runnable callback) {
+        this.onAtencionRegistrada = callback;
+    }
     public void setOnConectar(Runnable callback) { this.onConectar = callback; }
     public void setOnDesconectar(Runnable callback) { this.onDesconectar = callback; }
     public void setOnClienteAsignado(java.util.function.Consumer<JsonObject> callback) {
@@ -188,11 +191,8 @@ public class AtencionController {
     }
     
     public void finalizarAtencion(String motivo, int duracion) {
-        System.out.println("[CONTROLLER] finalizarAtencion() llamado");
-        System.out.println("[CONTROLLER] clienteActual: " + (clienteActual != null ? clienteActual.getTicket() : "null"));
-
         if (clienteActual == null) {
-            System.out.println("[CONTROLLER] ERROR: clienteActual es null");
+            log("❌ No hay cliente actual para finalizar");
             return;
         }
 
@@ -205,11 +205,8 @@ public class AtencionController {
         finalizacion.addProperty("agente", nombreAgente);
         finalizacion.addProperty("tipoAtencion", tipoAgente);
 
-        System.out.println("[CONTROLLER] Enviando FINALIZAR_ATENCION: " + finalizacion.toString());
-        conexion.enviarComando(finalizacion);
-
-        // 🔥 LIMPIAR DESPUÉS DE ENVIAR
-        this.clienteActual = null;
+        conexion.enviarComandoAsync(finalizacion);
+        log("📤 Enviando finalización para " + clienteActual.getTicket());
     }
 
     public void cambiarIpServidor(String nuevaIp) {
@@ -257,18 +254,36 @@ public class AtencionController {
                         String mensaje = json.get("mensaje").getAsString();
                         String hora = json.get("hora").getAsString();
                         if (onMensajeChat != null) {
-                            SwingUtilities.invokeLater(() -> 
-                                onMensajeChat.accept("[" + hora + "] " + emisor + ": " + mensaje)
+                            SwingUtilities.invokeLater(()
+                                    -> onMensajeChat.accept("[" + hora + "] " + emisor + ": " + mensaje)
                             );
                         }
                         break;
 
+                    case "ACTUALIZAR_USUARIOS_CHAT":  // ← CLAVE: manejar este estado
                     case "LISTA_USUARIOS_CHAT":
                         if (onActualizarUsuariosChat != null) {
-                            SwingUtilities.invokeLater(() -> 
-                                onActualizarUsuariosChat.accept(json.get("usuarios").getAsJsonArray())
+                            SwingUtilities.invokeLater(()
+                                    -> onActualizarUsuariosChat.accept(json.get("usuarios").getAsJsonArray())
                             );
                         }
+                        break;
+
+                    case "IDENTIFICADO":
+                        log("✅ " + json.get("mensaje").getAsString());
+                        break;
+
+                    case "ATENCION_REGISTRADA":
+                        log("✅ " + json.get("mensaje").getAsString());
+                        this.clienteActual = null;
+                        if (onAtencionRegistrada != null) {
+                            SwingUtilities.invokeLater(() -> onAtencionRegistrada.run());
+                        }
+                        break;
+
+                    case "MODO_CAMBIADO":
+                        String nuevoModo = json.get("modo").getAsString();
+                        log("✅ Modo cambiado a: " + nuevoModo.toUpperCase());
                         break;
 
                     case "CLIENTE_ASIGNADO":

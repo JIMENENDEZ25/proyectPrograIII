@@ -6,7 +6,7 @@ package com.umg.callcenter.atencion.normal.ui;
 
 /**
  *
- * @authors mk, natr, olga, jimem
+ * @author mk
  */
 
 import com.umg.callcenter.atencion.normal.controller.AtencionController;
@@ -459,9 +459,30 @@ public class ui extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     int row = jTable1.getSelectedRow();
-                    if (row >= 0 && controller.getClienteActual() == null) {
+                    if (row >= 0) {
+                        if (controller.getClienteActual() != null) {
+                            JOptionPane.showMessageDialog(null,
+                                    "Ya tienes un cliente en atención. Finalízalo primero.",
+                                    "Cliente activo",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+
                         String ticket = modeloTablaEspera.getValueAt(row, 0).toString();
-                        controller.tomarClienteSeleccionado(ticket);
+                        String nombre = modeloTablaEspera.getValueAt(row, 2).toString();
+                        String hora = modeloTablaEspera.getValueAt(row, 3).toString();
+
+                        int confirm = JOptionPane.showConfirmDialog(
+                                null,
+                                "¿Tomar este cliente?\n\nTicket: " + ticket + "\nCliente: " + nombre + "\nIngreso: " + hora,
+                                "Confirmar atención",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            controller.tomarClienteSeleccionado(ticket);
+                        }
                     }
                 }
             }
@@ -481,7 +502,17 @@ public class ui extends javax.swing.JFrame {
             server_Status.setForeground(Color.RED);
             btn_takeNextCliente.setEnabled(false);
         });
-
+        
+        controller.setOnAtencionRegistrada(() -> {
+            SwingUtilities.invokeLater(() -> {
+                txt_motive.setText("");
+                txt_duration.setText("");
+                habilitarRegistroAtencion(false);
+                agregarLog("✅ Atención registrada exitosamente");
+                controller.actualizarListaClientes();
+                btn_takeNextCliente.setEnabled(true);
+            });
+        });
         controller.setOnLog(this::agregarLog);
 
         controller.setOnActualizarContadores((normal, premium) -> {
@@ -589,18 +620,25 @@ public class ui extends javax.swing.JFrame {
             return;
         }
 
+        // Confirmar finalización
+        int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "¿Finalizar atención?\n\nTicket: " + clienteActual.getTicket() + "\nCliente: " + clienteActual.getNombreCompleto()
+                + "\n\nMotivo: " + motivo + "\nDuración: " + duracion + " minutos",
+                "Confirmar finalización",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
         btn_finalizarAtencion.setEnabled(false);
+        btn_takeNextCliente.setEnabled(false);
 
-        // Simular progreso (opcional - puedes omitir si no tienes JProgressBar)
-        // Si quieres añadir una barra de progreso, agrégala al formulario
         controller.finalizarAtencion(motivo, duracion);
-
-        // Reactivar botón después de un momento
-        Timer resetTimer = new Timer(1500, e -> {
-            btn_finalizarAtencion.setEnabled(true);
-        });
-        resetTimer.setRepeats(false);
-        resetTimer.start();
+        agregarLog("⏳ Finalizando atención...");
     }
 
     private void habilitarRegistroAtencion(boolean habilitado) {
